@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vifarinde/multi-docker -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run vifarinde/multi-docker npm test -- --coverage
+
+after_success:
+  - docker build -t vifarinde/multi-client ./client
+  - docker build -t vifarinde/multi-server ./server
+  - docker build -t vifarinde/multi-nginx ./nginx
+  - docker build -t vifarinde/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push vifarinde/multi-client
+  - docker push vifarinde/multi-nginx
+  - docker push vifarinde/multi-worker
+  - docker push vifarinde/multi-server
